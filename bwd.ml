@@ -274,7 +274,7 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
     else gentasks_hard system (empty_queue q) !visited
 
 
-  let compute ~worker ~master l =
+  let helper ~worker ~master l =
     let pending = Stack.create () in
     let add l = List.iter (fun t -> Stack.push t pending) l in
     add l;
@@ -283,6 +283,26 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
       let l = master t (worker a) in
       add l
     done
+
+        let rec slice b e l =
+          match l with
+          | [] -> []
+          | h :: t ->
+             let tail = if e=0 then [] else slice (b-1) (e-1) t in
+             if b > 0 then tail else h :: tail
+
+      let num_cores = cores (*Previously hard-coded to 4*)
+
+        let compute ~worker ~master l =
+            let len = List.length l in
+            let inc = (len/num_cores) - 1 in
+
+            let rec spawn nd l st incr =
+                if (nd = 0) then []
+                else Domain.spawn (fun _ -> helper ~worker ~master (slice st (st + inc) l))
+                :: (spawn (nd - 1) l (st + inc + 1) inc)
+            in let domains = spawn (num_cores-1) l 0 inc in
+            List.iter Domain.join domains
 
   let search ?(invariants=[]) ?(candidates=[]) system =
 
