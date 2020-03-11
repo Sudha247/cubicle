@@ -35,7 +35,7 @@ type result = Safe of Node.t list * Node.t list | Unsafe of Node.t * Node.t list
 
 
 module type Strategy = sig
-  
+
   val search : ?invariants:Node.t list -> ?candidates:Node.t list ->
                t_system -> result
 
@@ -50,7 +50,7 @@ module Make ( Q : PriorityNodeQueue ) : Strategy = struct
   let nb_remaining q post () = Q.length q, List.length !post
 
   let search ?(invariants=[]) ?(candidates=[]) system =
-    
+
     let visited = ref Cubetrie.empty in
     let candidates = ref candidates in
     let q = Q.create () in
@@ -83,7 +83,7 @@ module Make ( Q : PriorityNodeQueue ) : Strategy = struct
                       candidates := c :: !candidates;
                       Stats.candidate n c;
                       c
-                    with Safety.Unsafe _ -> n 
+                    with Safety.Unsafe _ -> n
                          (* If the candidate is directly reachable, no need to
                             backtrack, just forget it. *)
                end
@@ -97,7 +97,7 @@ module Make ( Q : PriorityNodeQueue ) : Strategy = struct
              Q.push_list ls q;
              Stats.remaining (nb_remaining q postponed);
         end;
-        
+
         if Q.is_empty q then
           (* When the queue is empty, pour back postponed nodes in it *)
           begin
@@ -130,15 +130,11 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
     | WR_Unsafe of Node.t
     | WR_ReachLimit
     | WR_NoFixpoint
-  
-  let () =
-    (* Functory.Control.set_debug true; *)
-    Functory.Cores.set_number_of_cores cores
 
   let do_sync_barrier = true
 
   let gentasks nodes visited =
-    let tasks, _ = 
+    let tasks, _ =
       List.fold_left
         (fun (tasks, visited) n ->
          (Task_node (n, visited), ()) :: tasks,
@@ -148,7 +144,7 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
     List.rev tasks
 
   let gentasks_hard system nodes visited =
-    let tasks, _ = 
+    let tasks, _ =
       List.fold_left
         (fun (tasks, visited) n ->
          Safety.check system n;
@@ -220,7 +216,7 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
 
   let empty_queue q =
     let rec qux acc =
-      if Q.is_empty q then List.rev acc 
+      if Q.is_empty q then List.rev acc
       else qux (Q.pop q :: acc)
     in
     qux []
@@ -232,7 +228,7 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
          raise (Safety.Unsafe faulty)
       | WR_ReachLimit, _ -> raise Stats.ReachedLimit
       | WR_Fixpoint db, (Task_node (n, _), ()) ->
-         if not quiet && debug then eprintf "\nRECIEVED FIX\n@."; 
+         if not quiet && debug then eprintf "\nRECIEVED FIX\n@.";
          Stats.fixpoint n db
       | WR_PreNormal (ls, post), (Task_node (n, _), ()) ->
          Stats.new_node n;
@@ -244,7 +240,7 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
          populate_pre q postponed visited c ls post
       | WR_NoFixpoint, (Task_node (n, _), ()) ->
          begin
-         if not quiet && debug then eprintf "\nRECIEVED NO_FIX\n@."; 
+         if not quiet && debug then eprintf "\nRECIEVED NO_FIX\n@.";
          Stats.check_limit n;
          Stats.new_node n;
          let n = begin
@@ -257,7 +253,7 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
                   candidates := c :: !candidates;
                   Stats.candidate n c;
                   c
-                with Safety.Unsafe _ -> n 
+                with Safety.Unsafe _ -> n
            (* If the candidate is directly reachable, no need to
                             backtrack, just forget it. *)
            end
@@ -272,15 +268,24 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
          Q.push_list ls q;
          Stats.remaining (nb_remaining q postponed);
          end
-         
+
     end;
     if do_sync_barrier then []
     else gentasks_hard system (empty_queue q) !visited
 
 
-   
+  let compute ~worker ~master l =
+    let pending = Stack.create () in
+    let add l = List.iter (fun t -> Stack.push t pending) l in
+    add l;
+    while not (Stack.is_empty pending) do
+      let a,_ as t = Stack.pop pending in
+      let l = master t (worker a) in
+      add l
+    done
+
   let search ?(invariants=[]) ?(candidates=[]) system =
-    
+
     let visited = ref Cubetrie.empty in
     let candidates = ref candidates in
     let q = Q.create () in
@@ -294,16 +299,13 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
 
     try
       while not (Q.is_empty q) do
-        (* let compute = if Q.length q > 5000 then *)
-        (*     Functory.Cores.compute *)
-        (*   else Functory.Sequential.compute *)
-        (* in *)
+
         let tasks = gentasks_hard system (empty_queue q) !visited in
-        Functory.Cores.compute
+        compute
           ~worker:(worker_fix system)
           ~master:(master_fetch system q postponed visited candidates)
           tasks;
-        
+
         if Q.is_empty q then
           (* When the queue is empty, pour back postponed nodes in it *)
           begin
@@ -324,7 +326,7 @@ end
 module BreadthOrder = struct
 
   type t = Node.t
- 
+
   let compare = Node.compare_by_breadth
 
 end
@@ -333,7 +335,7 @@ end
 module DepthOrder = struct
 
   type t = Node.t
- 
+
   let compare = Node.compare_by_depth
 
 end
@@ -360,7 +362,7 @@ struct
   let clear h = h := H.empty
 
   let length h = H.length !h
-                          
+
   let is_empty h = !h = H.empty
 
 end
@@ -393,12 +395,12 @@ end
 
 
 module ApproxQ (Q : PriorityNodeQueue) = struct
-  
+
   type t = Q.t * Q.t
 
   let create () = Q.create (), Q.create ()
 
-  let pop (aq, nq) = 
+  let pop (aq, nq) =
     if not (Q.is_empty aq) then Q.pop aq
     else Q.pop nq
 
@@ -420,7 +422,7 @@ end
 module type Maker = functor (Q : PriorityNodeQueue) -> Strategy
 
 let make_functor =
-  if cores > 1 then 
+  if cores > 1 then
     (module MakeParall : Maker)
   else
     (module Make)
@@ -446,4 +448,4 @@ let select_search =
   | "dfsa" -> (module DFSA)
   | _ -> failwith ("The strategy "^mode^" is not implemented.")
 
-module Selected : Strategy = (val (select_search)) 
+module Selected : Strategy = (val (select_search))
