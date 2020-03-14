@@ -38,19 +38,31 @@ struct
 
   module WH = Weak.Make (H)
 
-  let next_tag = ref 0
+  (* XXX KC: Hack *)
+  let next_tag_arr = Array.init 128 (fun _ -> ref 0)
 
-  let htable = WH.create 5003
+  (* XXX KC: Hack *)
+  let htable_arr  = Array.init 128 (fun _ -> WH.create 5003)
 
   let hashcons d =
+    let self :> int = Domain.self () in
+    let self = self mod 128 in
+    let next_tag = next_tag_arr.(self) in
+    let htable = htable_arr.(self) in
     let d = H.tag !next_tag d in
     let o = WH.merge htable d in
     if o == d then incr next_tag;
     o
 
-  let iter f = WH.iter f htable
+  let iter f =
+    let self :> int = Domain.self () in
+    let self = self mod 128 in
+    WH.iter f htable_arr.(self)
 
-  let stats () = WH.stats htable
+  let stats () =
+    let self :> int = Domain.self () in
+    let self = self mod 128 in
+    WH.stats htable_arr.(self)
 end
 
 let combine acc n = n * 65599 + acc
