@@ -1,0 +1,140 @@
+approx.cmo : variable.cmi types.cmi safety.cmi oracle.cmi options.cmi \
+    node.cmi murphi.cmi forward.cmi enumerative.cmi cubetrie.cmi cube.cmi \
+    ast.cmi approx.cmi
+approx.cmx : variable.cmx types.cmx safety.cmx oracle.cmi options.cmx \
+    node.cmx murphi.cmx forward.cmx enumerative.cmx cubetrie.cmx cube.cmx \
+    ast.cmi approx.cmi
+approx.cmi : oracle.cmi options.cmi node.cmi ast.cmi
+ast.cmi : variable.cmi util.cmi types.cmi cube.cmi
+brab.cmo : types.cmi stats.cmi options.cmi node.cmi bwd.cmi ast.cmi \
+    approx.cmi brab.cmi
+brab.cmx : types.cmx stats.cmx options.cmx node.cmx bwd.cmx ast.cmi \
+    approx.cmx brab.cmi
+brab.cmi : bwd.cmi ast.cmi
+bwd.cmo : stats.cmi safety.cmi pre.cmi options.cmi node.cmi fixpoint.cmi \
+    dot.cmi cubetrie.cmi ast.cmi approx.cmi bwd.cmi
+bwd.cmx : stats.cmx safety.cmx pre.cmx options.cmx node.cmx fixpoint.cmx \
+    dot.cmx cubetrie.cmx ast.cmi approx.cmx bwd.cmi
+bwd.cmi : options.cmi node.cmi ast.cmi
+cube.cmo : variable.cmi util.cmi types.cmi options.cmi cube.cmi
+cube.cmx : variable.cmx util.cmx types.cmx options.cmx cube.cmi
+cube.cmi : variable.cmi types.cmi
+cubetrie.cmo : variable.cmi util.cmi types.cmi options.cmi node.cmi dot.cmi \
+    cube.cmi ast.cmi cubetrie.cmi
+cubetrie.cmx : variable.cmx util.cmx types.cmx options.cmx node.cmx dot.cmx \
+    cube.cmx ast.cmi cubetrie.cmi
+cubetrie.cmi : types.cmi node.cmi
+dot.cmo : variable.cmi util.cmi types.cmi options.cmi cube.cmi ast.cmi \
+    dot.cmi
+dot.cmx : variable.cmx util.cmx types.cmx options.cmx cube.cmx ast.cmi \
+    dot.cmi
+dot.cmi : types.cmi node.cmi
+enumerative.cmo : variable.cmi util.cmi types.cmi pretty.cmi options.cmi \
+    node.cmi forward.cmi cube.cmi ast.cmi enumerative.cmi
+enumerative.cmx : variable.cmx util.cmx types.cmx pretty.cmx options.cmx \
+    node.cmx forward.cmx cube.cmx ast.cmi enumerative.cmi
+enumerative.cmi : variable.cmi types.cmi oracle.cmi node.cmi ast.cmi
+fake_functory.cmo : fake_functory.cmi
+fake_functory.cmx : fake_functory.cmi
+fake_functory.cmi :
+fixpoint.cmo : variable.cmi util.cmi types.cmi prover.cmi options.cmi \
+    node.cmi instantiation.cmi cubetrie.cmi cube.cmi ast.cmi fixpoint.cmi
+fixpoint.cmx : variable.cmx util.cmx types.cmx prover.cmx options.cmx \
+    node.cmx instantiation.cmx cubetrie.cmx cube.cmx ast.cmi fixpoint.cmi
+fixpoint.cmi : variable.cmi node.cmi cubetrie.cmi
+forward.cmo : variable.cmi types.cmi prover.cmi options.cmi node.cmi \
+    cube.cmi ast.cmi forward.cmi
+forward.cmx : variable.cmx types.cmx prover.cmx options.cmx node.cmx \
+    cube.cmx ast.cmi forward.cmi
+forward.cmi : variable.cmi types.cmi node.cmi ast.cmi
+functory.cmo : functory.cmi
+functory.cmx : functory.cmi
+functory.cmi :
+instantiation.cmo : variable.cmi util.cmi types.cmi options.cmi cube.cmi \
+    ast.cmi instantiation.cmi
+instantiation.cmx : variable.cmx util.cmx types.cmx options.cmx cube.cmx \
+    ast.cmi instantiation.cmi
+instantiation.cmi : variable.cmi cube.cmi
+lexer.cmo : parser.cmi options.cmi
+lexer.cmx : parser.cmx options.cmx
+main.cmo : util.cmi typing.cmi trace.cmi stats.cmi parser.cmi options.cmi \
+    lexer.cmo dot.cmi bwd.cmi brab.cmi ast.cmi
+main.cmx : util.cmx typing.cmx trace.cmx stats.cmx parser.cmx options.cmx \
+    lexer.cmx dot.cmx bwd.cmx brab.cmx ast.cmi
+mulexer.cmo : options.cmi muparser_globals.cmi muparser.cmi
+mulexer.cmx : options.cmx muparser_globals.cmx muparser.cmx
+muparser.cmo : options.cmi muparser_globals.cmi enumerative.cmi muparser.cmi
+muparser.cmx : options.cmx muparser_globals.cmx enumerative.cmx muparser.cmi
+muparser.cmi :
+muparser_globals.cmo : enumerative.cmi muparser_globals.cmi
+muparser_globals.cmx : enumerative.cmx muparser_globals.cmi
+muparser_globals.cmi : enumerative.cmi
+murphi.cmo : variable.cmi util.cmi types.cmi pretty.cmi options.cmi \
+    muparser_globals.cmi muparser.cmi mulexer.cmo forward.cmi enumerative.cmi \
+    cube.cmi ast.cmi murphi.cmi
+murphi.cmx : variable.cmx util.cmx types.cmx pretty.cmx options.cmx \
+    muparser_globals.cmx muparser.cmx mulexer.cmx forward.cmx enumerative.cmx \
+    cube.cmx ast.cmi murphi.cmi
+murphi.cmi : oracle.cmi ast.cmi
+node.cmo : variable.cmi util.cmi types.cmi options.cmi cube.cmi ast.cmi \
+    node.cmi
+node.cmx : variable.cmx util.cmx types.cmx options.cmx cube.cmx ast.cmi \
+    node.cmi
+node.cmi : variable.cmi types.cmi cube.cmi ast.cmi
+options.cmo : version.cmo options.cmi
+options.cmx : version.cmx options.cmi
+options.cmi :
+oracle.cmi : node.cmi ast.cmi
+parser.cmo : types.cmi ptree.cmi options.cmi ast.cmi parser.cmi
+parser.cmx : types.cmx ptree.cmx options.cmx ast.cmi parser.cmi
+parser.cmi : ast.cmi
+pre.cmo : variable.cmi util.cmi types.cmi options.cmi node.cmi cube.cmi \
+    ast.cmi pre.cmi
+pre.cmx : variable.cmx util.cmx types.cmx options.cmx node.cmx cube.cmx \
+    ast.cmi pre.cmi
+pre.cmi : types.cmi node.cmi ast.cmi
+pretty.cmo : util.cmi types.cmi options.cmi ast.cmi pretty.cmi
+pretty.cmx : util.cmx types.cmx options.cmx ast.cmi pretty.cmi
+pretty.cmi :
+prover.cmo : variable.cmi util.cmi types.cmi options.cmi node.cmi cube.cmi \
+    ast.cmi prover.cmi
+prover.cmx : variable.cmx util.cmx types.cmx options.cmx node.cmx cube.cmx \
+    ast.cmi prover.cmi
+prover.cmi : types.cmi node.cmi ast.cmi
+ptree.cmo : variable.cmi util.cmi types.cmi pretty.cmi options.cmi ast.cmi \
+    ptree.cmi
+ptree.cmx : variable.cmx util.cmx types.cmx pretty.cmx options.cmx ast.cmi \
+    ptree.cmi
+ptree.cmi : variable.cmi util.cmi types.cmi ast.cmi
+safety.cmo : prover.cmi options.cmi node.cmi cube.cmi ast.cmi safety.cmi
+safety.cmx : prover.cmx options.cmx node.cmx cube.cmx ast.cmi safety.cmi
+safety.cmi : node.cmi ast.cmi
+stats.cmo : variable.cmi util.cmi types.cmi prover.cmi pretty.cmi \
+    options.cmi node.cmi forward.cmi dot.cmi ast.cmi stats.cmi
+stats.cmx : variable.cmx util.cmx types.cmx prover.cmx pretty.cmx \
+    options.cmx node.cmx forward.cmx dot.cmx ast.cmi stats.cmi
+stats.cmi : node.cmi ast.cmi
+trace.cmo : variable.cmi util.cmi types.cmi stats.cmi pre.cmi options.cmi \
+    node.cmi fixpoint.cmi ast.cmi trace.cmi
+trace.cmx : variable.cmx util.cmx types.cmx stats.cmx pre.cmx options.cmx \
+    node.cmx fixpoint.cmx ast.cmi trace.cmi
+trace.cmi : node.cmi ast.cmi
+trie.cmo : trie.cmi
+trie.cmx : trie.cmi
+trie.cmi :
+types.cmo : variable.cmi util.cmi options.cmi types.cmi
+types.cmx : variable.cmx util.cmx options.cmx types.cmi
+types.cmi : variable.cmi
+typing.cmo : variable.cmi util.cmi types.cmi pretty.cmi pre.cmi options.cmi \
+    node.cmi cube.cmi ast.cmi typing.cmi
+typing.cmx : variable.cmx util.cmx types.cmx pretty.cmx pre.cmx options.cmx \
+    node.cmx cube.cmx ast.cmi typing.cmi
+typing.cmi : util.cmi ast.cmi
+util.cmo : options.cmi util.cmi
+util.cmx : options.cmx util.cmi
+util.cmi :
+variable.cmo : options.cmi variable.cmi
+variable.cmx : options.cmx variable.cmi
+variable.cmi :
+version.cmo :
+version.cmx :

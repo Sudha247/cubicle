@@ -51,6 +51,7 @@ module Make ( Q : PriorityNodeQueue ) : Strategy = struct
 
   let search ?(invariants=[]) ?(candidates=[]) system =
 
+    eprintf "Hello\n";
     let visited = ref Cubetrie.empty in
     let candidates = ref candidates in
     let q = Q.create () in
@@ -61,6 +62,7 @@ module Make ( Q : PriorityNodeQueue ) : Strategy = struct
     Q.push_list system.t_unsafe q;
     List.iter (fun inv -> visited := Cubetrie.add_node inv !visited)
               (invariants @ system.t_invs);
+
 
     try
       while not (Q.is_empty q) do
@@ -274,8 +276,9 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
     else gentasks_hard system (empty_queue q) !visited
 
 
-    let helper ~worker ~master l =
+    let compute ~worker ~master l =
       Printexc.record_backtrace true;
+      Printf.printf "Hello\n";
       try
         let pending = Stack.create () in
         let add l = List.iter (fun t -> Stack.push t pending) l in
@@ -299,13 +302,13 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
 
       let num_cores = cores (*Previously hard-coded to 4*)
 
-      let compute ~worker ~master l =
+      let compute' ~worker ~master l =
           let len = List.length l in
           let inc = (len/num_cores) - 1 in
 
           let rec spawn nd l st incr =
               if (nd = 0) then []
-              else Domain.spawn (fun _ -> helper ~worker ~master (slice st (st + inc) l))
+              else Domain.spawn (fun _ -> compute ~worker ~master (slice st (st + inc) l))
               :: (spawn (nd - 1) l (st + inc + 1) inc)
           in let domains = spawn (num_cores-1) l 0 inc in
           List.iter Domain.join domains
@@ -327,7 +330,7 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
       while not (Q.is_empty q) do
 
         let tasks = gentasks_hard system (empty_queue q) !visited in
-        compute
+        compute'
           ~worker:(worker_fix system)
           ~master:(master_fetch system q postponed visited candidates)
           tasks;
