@@ -281,7 +281,9 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
     let compute
         ~(worker : 'a -> 'b) ~(master : ('a * 'c) -> 'b -> ('a * 'c) list) tasks =
 
+      Printexc.record_backtrace true;
       (* Printf.printf "I'm computing !!!"; *)
+      try
       let pending = C.make_unbounded () in
       (* adds all items in tasks to pending*)
       let add = List.iter (fun t -> C.send pending (Task t)) in
@@ -303,8 +305,11 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
       let domains = Array.init (num_domains - 1)
             (fun _ -> Printf.printf "I'm spawning\n"; Domain.spawn(fun _ -> my_worker pending () )) in
       my_worker pending ();
-
       Array.iter Domain.join domains
+      with e ->
+        print_endline (Printexc.to_string e);
+        Printexc.print_backtrace stdout;
+        raise e
 
   let search ?(invariants=[]) ?(candidates=[]) system =
 
