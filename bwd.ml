@@ -16,6 +16,7 @@
 open Options
 open Format
 open Ast
+module C = Domainslib.Chan
 
 module type PriorityNodeQueue = sig
 
@@ -51,7 +52,6 @@ module Make ( Q : PriorityNodeQueue ) : Strategy = struct
 
   let search ?(invariants=[]) ?(candidates=[]) system =
 
-    eprintf "Hello\n";
     let visited = ref Cubetrie.empty in
     let candidates = ref candidates in
     let q = Q.create () in
@@ -276,42 +276,35 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
     else gentasks_hard system (empty_queue q) !visited
 
 
-    let compute ~worker ~master l =
-      Printexc.record_backtrace true;
-      Printf.printf "Hello\n";
-      try
-        let pending = Stack.create () in
-        let add l = List.iter (fun t -> Stack.push t pending) l in
-        add l;
-        while not (Stack.is_empty pending) do
-          let a,_ as t = Stack.pop pending in
-          let l = master t (worker a) in
-          add l
-        done
-      with e ->
-        print_endline (Printexc.to_string e);
-        Printexc.print_backtrace stdout;
-        raise e
+    type 'a job_type = Task of 'a | Quit
 
-      let rec slice b e l =
-        match l with
-        | [] -> []
-        | h :: t ->
-            let tail = if e=0 then [] else slice (b-1) (e-1) t in
-            if b > 0 then tail else h :: tail
+    let compute
+        ~(worker : 'a -> 'b) ~(master : ('a * 'c) -> 'b -> ('a * 'c) list) tasks =
 
-      let num_cores = cores (*Previously hard-coded to 4*)
+      (* Printf.printf "I'm computing !!!"; *)
+      let pending = C.make_unbounded () in
+      (* adds all items in tasks to pending*)
+      let add = List.iter (fun t -> C.send pending (Task t)) in
+      add tasks;
+      let num_domains = cores in
+      Printf.printf "cores: %d\n" num_domains;
+      for _i = 0 to num_domains - 1 do
+        C.send pending Quit
+      done;
+      let rec my_worker c () =
+        match C.recv c with
+        | Task v ->
+            let a, _ as t = v in
+            let l = master t (worker a) in
+            add l;
+            my_worker c ()
+        | Quit -> ()
+      in
+      let domains = Array.init (num_domains - 1)
+            (fun _ -> Printf.printf "I'm spawning\n"; Domain.spawn(fun _ -> my_worker pending () )) in
+      my_worker pending ();
 
-      let compute' ~worker ~master l =
-          let len = List.length l in
-          let inc = (len/num_cores) - 1 in
-
-          let rec spawn nd l st incr =
-              if (nd = 0) then []
-              else Domain.spawn (fun _ -> compute ~worker ~master (slice st (st + inc) l))
-              :: (spawn (nd - 1) l (st + inc + 1) inc)
-          in let domains = spawn (num_cores-1) l 0 inc in
-          List.iter Domain.join domains
+      Array.iter Domain.join domains
 
   let search ?(invariants=[]) ?(candidates=[]) system =
 
@@ -330,7 +323,7 @@ module MakeParall ( Q : PriorityNodeQueue ) : Strategy = struct
       while not (Q.is_empty q) do
 
         let tasks = gentasks_hard system (empty_queue q) !visited in
-        compute'
+        compute
           ~worker:(worker_fix system)
           ~master:(master_fetch system q postponed visited candidates)
           tasks;

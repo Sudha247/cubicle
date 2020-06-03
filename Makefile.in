@@ -35,6 +35,7 @@ OCAMLLEX = @OCAMLLEX@
 OCAMLYACC= @OCAMLYACC@
 OCAMLLIB = @OCAMLLIB@
 FUNCTORYLIB = @FUNCTORYLIB@
+DOMAINSLIB = @DOMAINSLIB@
 Z3LIB = @Z3LIB@
 Z3CCFLAGS = @Z3CCFLAGS@
 OCAMLBEST= @OCAMLBEST@
@@ -42,13 +43,13 @@ OCAMLVERSION = @OCAMLVERSION@
 OCAMLWIN32 = @OCAMLWIN32@
 EXE = @EXE@
 
-INCLPATHS = $(FUNCTORYLIB) $(Z3LIB) -I common/ -I smt/
+INCLPATHS = $(FUNCTORYLIB) $(Z3LIB) $(DOMAINSLIB) -I common/ -I smt/
 INCLUDES = $(INCLPATHS) $(Z3CCFLAGS)
 
 BFLAGS = -dtypes -g $(INCLUDES) -annot
 OFLAGS = -dtypes -g $(INCLUDES) -annot
 
-REQBIB=nums.cma unix.cma functory.cma
+REQBIB=nums.cma unix.cma functory.cma domainslib.cma
 
 ifeq ($(Z3LIB),)
   BIBBYTE=$(REQBIB)
@@ -65,7 +66,7 @@ NAME = cubicle
 BYTE=$(NAME).byte
 OPT=$(NAME).opt
 
-all: make_functory $(OCAMLBEST) 
+all: make_functory $(OCAMLBEST)
 
 # configuration of the fake functory library
 ############################################
@@ -153,29 +154,29 @@ version.ml: config.status
 .SUFFIXES: .mli .ml .cmi .cmo .cmx .mll .mly
 
 .mli.cmi:
-	@true compile -w a $(BFLAGS) $< 
+	@true compile -w a $(BFLAGS) $<
 	$(if $(QUIET),@echo 'Compiling $@' &&) $(OCAMLC) -c $(BFLAGS) $<
 
 .ml.cmo:
 	$(if $(QUIET),@echo 'Compiling $@' &&) $(OCAMLC) -c $(BFLAGS) $<
-	@true compile -w a $(BFLAGS) $< 
+	@true compile -w a $(BFLAGS) $<
 
 .ml.o:
-	@true compile -w a $(BFLAGS) $< 
+	@true compile -w a $(BFLAGS) $<
 	$(if $(QUIET),@echo 'Compiling $@' &&) $(OCAMLOPT) -c $(OFLAGS) $<
 
 .ml.cmx:
 	$(if $(QUIET),@echo 'Compiling $@' &&) $(OCAMLOPT) -c $(OFLAGS) $<
-	@true compile -w a $(BFLAGS) $< 
+	@true compile -w a $(BFLAGS) $<
 
 .mll.ml:
 	$(if $(QUIET),@echo 'Compiling $<' &&) $(OCAMLLEX) $< > /dev/null
 
 .mly.ml:
-	$(if $(QUIET),@echo 'Compiling $<' &&) $(OCAMLYACC) -v $< 
+	$(if $(QUIET),@echo 'Compiling $<' &&) $(OCAMLYACC) -v $<
 
 .mly.mli:
-	$(if $(QUIET),@echo 'Compiling $<' &&) $(OCAMLYACC) -v $< 
+	$(if $(QUIET),@echo 'Compiling $<' &&) $(OCAMLYACC) -v $<
 
 
 # file headers
@@ -224,7 +225,7 @@ install-man:
 # clean
 #######
 
-clean:: 
+clean::
 	@rm -f *.cm[iox] *.o *~ *.annot
 	@rm -f common/*.cm[iox] common/*.o common/*~ common/*.annot
 	@rm -f smt/*.cm[iox] smt/*.o smt/*~ smt/*.annot
@@ -254,7 +255,7 @@ config.status: configure
 	./config.status --recheck
 
 configure: configure.in
-	autoconf 
+	autoconf
 
 
 # export
@@ -451,16 +452,16 @@ doc:
 	-intro doc/intro.txt $(INCLPATHS) \
 	$(filter-out %.mll %.mly fake_functory.ml, $(FILES)) \
         $(filter-out smt/z3wrapper_fake.ml smt/z3wrapper_actual.ml, $(SMTFILES)) \
-	$(COMMONFILES) 
+	$(COMMONFILES)
 
-docpdf: 
+docpdf:
 	mkdir -p doc/ocamldoc/latex
 	ocamldoc -latex -keep-code -d doc/ocamldoc -o doc/ocamldoc/latex/doc.tex \
 	-t "Cubicle $(VERSION) documentation and source" \
 	-intro doc/intro.txt $(INCLPATHS) \
 	$(filter-out %.mll %.mly fake_functory.ml, $(FILES)) \
         $(filter-out smt/z3wrapper_fake.ml smt/z3wrapper_actual.ml, $(SMTFILES)) \
-	$(COMMONFILES) 
+	$(COMMONFILES)
 	cd doc/ocamldoc/latex/; rubber -d doc
 
 

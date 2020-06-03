@@ -76,10 +76,13 @@ fi
 
 if test "$USEOCAMLFIND" = yes; then
   FUNCTORYLIB=$(ocamlfind query -i-format functory)
+	DOMAINSLIB=$(ocamlfind query -i-format domainslib)
 fi
 
 if test -n "$FUNCTORYLIB";then
   echo "ocamlfind found functory in $FUNCTORYLIB"
+	echo "ocamlfind found domainslib in $DOMAINSLIB"
+
   FUNCTORYLD=yes
 else
   AC_CHECK_FILE($OCAMLLIB/functory/functory.cma,FUNCTORYLD=yes,FUNCTORYLD=no)
@@ -149,6 +152,7 @@ AC_SUBST(Z3LIB)
 AC_SUBST(Z3CCFLAGS)
 AC_SUBST(OCAMLWIN32)
 AC_SUBST(EXE)
+AC_SUBST(DOMAINSLIB)
 
 AC_OUTPUT(Makefile)
 chmod a-w Makefile
